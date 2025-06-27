@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavaScript MCQ Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2rem; background: #f4f4f4; }
+    #quiz-container { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h2 { margin-bottom: 1rem; }
+    .option { margin-bottom: 0.5rem; }
+    button { margin-top: 1rem; padding: 0.5rem 1rem; }
+    #result-container { display: none; margin-top: 2rem; }
+    .correct { color: green; }
+    .incorrect { color: red; }
+  </style>
+</head>
+<body oncontextmenu="return false">
+  <div id="quiz-container">
+    <h2 id="question"></h2>
+    <div id="options"></div>
+    <div id="explanation" style="margin-top: 1rem; color: blue;"></div>
+    <button id="checkBtn" onclick="checkAnswer()" style="display:none">Check Answer</button>
+    <div>
+      <button onclick="prevQuestion()">Previous</button>
+      <button id="nextBtn" onclick="nextQuestion()" disabled>Next</button>
+    </div>
+    <p id="timer"></p>
+  </div>
+  <div id="result-container">
+    <h2>Test Complete</h2>
+    <p id="score"></p>
+    <ul id="answers-list"></ul>
+  </div>
+
+  <script>
+
+const questions = [
+    {
+        "question": "What will be the output?\n\nconsole.log(a);\nvar a = 10;",
+        "options": [
+            "10",
+            "undefined",
+            "ReferenceError",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "Due to hoisting, the declaration 'var a' moves to the top, but it's undefined until assignment."
+    },
+    {
+        "question": "What does this print?\n\nconsole.log(this);\n",
+        "options": [
+            "Window object",
+            "undefined",
+            "Global object",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "In browser global scope, 'this' refers to the 'window' object."
+    },
+    {
+        "question": "Output?\n\nfunction foo() {\n  console.log(this);\n}\nfoo();",
+        "options": [
+            "Window object",
+            "undefined",
+            "null",
+            "foo object"
+        ],
+        "answer": 0,
+        "explanation": "In non-strict mode, global function calls bind 'this' to 'window'."
+    },
+    {
+        "question": "What will happen?\n\nconsole.log(x);\nlet x = 5;",
+        "options": [
+            "undefined",
+            "5",
+            "ReferenceError",
+            "null"
+        ],
+        "answer": 2,
+        "explanation": "'let' variables are in TDZ (Temporal Dead Zone) until declared, causing ReferenceError."
+    },
+    {
+        "question": "Output?\n\nconsole.log(typeof undefined);\nconsole.log(typeof notDefinedVar);",
+        "options": [
+            "'undefined', 'undefined'",
+            "'undefined', ReferenceError",
+            "ReferenceError, ReferenceError",
+            "'object', 'undefined'"
+        ],
+        "answer": 1,
+        "explanation": "'undefined' is a type, but accessing undeclared variables throws ReferenceError."
+    },
+    {
+        "question": "What gets logged?\n\nvar a = 1;\nfunction test() {\n  console.log(a);\n  var a = 2;\n}\ntest();",
+        "options": [
+            "1",
+            "2",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 2,
+        "explanation": "Variable 'a' is hoisted but undefined inside the function scope."
+    },
+    {
+        "question": "Output?\n\nconsole.log(a);\nfunction a() {}",
+        "options": [
+            "function a() {}",
+            "undefined",
+            "ReferenceError",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "Function declarations are hoisted fully, including the definition."
+    },
+    {
+        "question": "What is output?\n\nvar x = 21;\nvar fun = function() {\n  console.log(x);\n  var x = 20;\n};\nfun();",
+        "options": [
+            "21",
+            "20",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 2,
+        "explanation": "Due to hoisting, 'x' inside function is undefined until assigned."
+    },
+    {
+        "question": "Output?\n\n(function() {\n  console.log(this);\n})();",
+        "options": [
+            "Global object (window)",
+            "undefined",
+            "null",
+            "Function object"
+        ],
+        "answer": 0,
+        "explanation": "In non-strict mode IIFEs, 'this' refers to the global object."
+    },
+    {
+        "question": "What will be printed?\n\nvar b = 10;\n(function() {\n  console.log(b);\n  var b = 20;\n})();",
+        "options": [
+            "10",
+            "20",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 2,
+        "explanation": "Hoisting creates a local 'b', but it's undefined until assignment."
+    },
+    {
+        "question": "What does this return?\n\nfunction outer() {\n  var count = 0;\n  return function() { count++; console.log(count); }\n}\nvar closure = outer();\nclosure();\nclosure();",
+        "options": [
+            "1, 1",
+            "1, 2",
+            "2, 2",
+            "undefined, undefined"
+        ],
+        "answer": 1,
+        "explanation": "Closure remembers 'count' between function calls."
+    },
+    {
+        "question": "What is output?\n\nfor(var i=0;i<3;i++){\n  setTimeout(()=>console.log(i), 100);\n}",
+        "options": [
+            "0,1,2",
+            "3,3,3",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "'var' has function scope, so all callbacks get final i=3 value."
+    },
+    {
+        "question": "Fix previous problem using let:\n\nfor(let i=0;i<3;i++){\n  setTimeout(()=>console.log(i), 100);\n}",
+        "options": [
+            "0,1,2",
+            "3,3,3",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "'let' creates block-scoped variables for each iteration."
+    },
+    {
+        "question": "Output?\n\nconsole.log(1);\nsetTimeout(() => console.log(2), 0);\nconsole.log(3);",
+        "options": [
+            "1,3,2",
+            "1,2,3",
+            "2,1,3",
+            "3,2,1"
+        ],
+        "answer": 0,
+        "explanation": "JS Event Loop: sync code runs first, then timer callbacks."
+    },
+    {
+        "question": "What gets logged?\n\nfunction foo() {\n  console.log('foo1');\n}\nfunction foo() {\n  console.log('foo2');\n}\nfoo();",
+        "options": [
+            "foo1",
+            "foo2",
+            "undefined",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "Second declaration overrides the first. Output is 'foo2'."
+    },
+    {
+        "question": "Output?\n\nconsole.log(typeof null);",
+        "options": [
+            "'null'",
+            "'object'",
+            "'undefined'",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "'null' is of type 'object' in JS due to legacy reasons."
+    },
+    {
+        "question": "What happens?\n\nconst person = {name: 'John'};\nperson.name = 'Doe';\nconsole.log(person.name);",
+        "options": [
+            "Error",
+            "John",
+            "Doe",
+            "undefined"
+        ],
+        "answer": 2,
+        "explanation": "Object properties are mutable even if the object is declared as const."
+    },
+    {
+        "question": "Output?\n\n(function test() {\n  console.log(typeof test);\n})();",
+        "options": [
+            "'function'",
+            "'undefined'",
+            "'object'",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Named function expressions have internal name bindings."
+    },
+    {
+        "question": "What gets logged?\n\nfunction test() {\n  console.log(arguments);\n}\ntest(1, 2, 3);",
+        "options": [
+            "[1,2,3]",
+            "Arguments object with 3 items",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "Arguments object contains all passed parameters."
+    },
+    {
+        "question": "Output?\n\nconsole.log(2 + '2');",
+        "options": [
+            "'22'",
+            "4",
+            "undefined",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "JS does string concatenation when adding number to string."
+    },
+    {
+        "question": "What happens?\n\nconst x = 5;\nx = 10;",
+        "options": [
+            "5",
+            "10",
+            "TypeError",
+            "undefined"
+        ],
+        "answer": 2,
+        "explanation": "Cannot reassign a const variable."
+    },
+    {
+        "question": "Output?\n\n[1,2,3].map(x => x * 2);",
+        "options": [
+            "[2,4,6]",
+            "undefined",
+            "[1,2,3]",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "map applies function to each element and returns new array."
+    },
+    {
+        "question": "What does reduce return?\n\n[1,2,3,4].reduce((acc, val) => acc + val, 0);",
+        "options": [
+            "10",
+            "24",
+            "undefined",
+            "[1,2,3,4]"
+        ],
+        "answer": 0,
+        "explanation": "Reduce sums up array elements starting from 0."
+    },
+    {
+        "question": "What is the output?\n\nvar name = 'global';\nfunction logName() {\n  console.log(this.name);\n}\nlogName();",
+        "options": [
+            "'global'",
+            "undefined",
+            "null",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "In global scope, 'this.name' refers to 'window.name' or global."
+    },
+    {
+        "question": "Output?\n\nfunction outer() {\n  var count = 0;\n  return function inner() {\n    console.log(++count);\n  }\n}\nvar inc = outer();\ninc();\ninc();",
+        "options": [
+            "1,1",
+            "1,2",
+            "2,2",
+            "undefined,undefined"
+        ],
+        "answer": 1,
+        "explanation": "Closure remembers 'count' across function calls."
+    },
+    {
+        "question": "What happens?\n\nfunction a() {}\nvar a;\nconsole.log(typeof a);",
+        "options": [
+            "'function'",
+            "'undefined'",
+            "ReferenceError",
+            "'object'"
+        ],
+        "answer": 0,
+        "explanation": "Function declarations override variable declarations."
+    },
+    {
+        "question": "What’s the output?\n\nconsole.log(0 == '');",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "0 is not loosely equal to empty string ('')."
+    },
+    {
+        "question": "Output?\n\n[1,2,3].filter(x => x > 1);",
+        "options": [
+            "[2,3]",
+            "[1,2,3]",
+            "undefined",
+            "[1]"
+        ],
+        "answer": 0,
+        "explanation": "filter returns elements that pass the test condition."
+    },
+    {
+        "question": "What happens?\n\nvar foo = function bar() { return 7; };\nconsole.log(typeof bar);",
+        "options": [
+            "'function'",
+            "'undefined'",
+            "'object'",
+            "'number'"
+        ],
+        "answer": 1,
+        "explanation": "Named function expressions don't expose name in outer scope."
+    },
+    {
+        "question": "What will console.log print?\n\nconsole.log(this);",
+        "options": [
+            "Window object",
+            "undefined",
+            "null",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "At global level, 'this' points to global object (window in browsers)."
+    },
+    {
+        "question": "Output?\n\n(function(x){\n  return (function(y){\n    console.log(x);\n  })(2);\n})(1);",
+        "options": [
+            "1",
+            "2",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Closure over x=1 preserves x inside inner function."
+    },
+    {
+        "question": "Output?\n\nconsole.log(typeof NaN);",
+        "options": [
+            "'number'",
+            "'NaN'",
+            "'undefined'",
+            "'object'"
+        ],
+        "answer": 0,
+        "explanation": "In JS, NaN is of type 'number'."
+    },
+    {
+        "question": "Output?\n\nconsole.log(1 < 2 < 3);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "1<2 gives true => true coerced to 1 => 1<3 is true."
+    },
+    {
+        "question": "What will this output?\n\nconsole.log([] + []);",
+        "options": [
+            "''",
+            "'[object Object][object Object]'",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Empty arrays when added get converted to empty strings."
+    },
+    {
+        "question": "Output?\n\nvar a;\nconsole.log(typeof a);",
+        "options": [
+            "'undefined'",
+            "'null'",
+            "'object'",
+            "'ReferenceError'"
+        ],
+        "answer": 0,
+        "explanation": "Uninitialized variables are 'undefined'."
+    },
+    {
+        "question": "What does this log?\n\nconsole.log([] == false);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Empty array coerces to false in loose equality check."
+    },
+    {
+        "question": "Output?\n\nfunction foo(a){\n  console.log(a);\n}\nfoo();",
+        "options": [
+            "undefined",
+            "null",
+            "ReferenceError",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "No argument passed => 'a' is undefined."
+    },
+    {
+        "question": "What happens?\n\nconsole.log(+true);",
+        "options": [
+            "1",
+            "true",
+            "NaN",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "'+true' converts true to 1."
+    },
+    {
+        "question": "Output?\n\nconsole.log(1 + '2' + 3);",
+        "options": [
+            "'123'",
+            "'33'",
+            "6",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "1 + '2' => '12'; then '12' + 3 => '123'."
+    },
+    {
+        "question": "What will this output?\n\nfor(var i=0; i<3; i++) {\n  setTimeout(function() {\n    console.log(i);\n  }, i * 1000);\n}",
+        "options": [
+            "0 1 2",
+            "3 3 3",
+            "undefined",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "Due to 'var' being function-scoped, all timeouts capture i=3 at runtime."
+    },
+    {
+        "question": "Fix previous using IIFE:\n\nfor(var i=0; i<3; i++) {\n  (function(j) {\n    setTimeout(function() {\n      console.log(j);\n    }, j * 1000);\n  })(i);\n}",
+        "options": [
+            "0 1 2",
+            "3 3 3",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "IIFE creates a new lexical scope capturing correct i values."
+    },
+    {
+        "question": "What gets printed?\n\nlet a = 1;\n{\n  let a = 2;\n  console.log(a);\n}\nconsole.log(a);",
+        "options": [
+            "2, 1",
+            "1, 2",
+            "2, 2",
+            "1, 1"
+        ],
+        "answer": 0,
+        "explanation": "Block scoping: inner 'a' doesn't affect outer 'a'."
+    },
+    {
+        "question": "Output?\n\nfunction a() {\n  console.log('a');\n  return function() {\n    console.log('b');\n  }\n}\na()();",
+        "options": [
+            "a",
+            "a b",
+            "b a",
+            "b"
+        ],
+        "answer": 1,
+        "explanation": "First call runs 'a', second runs returned function logging 'b'."
+    },
+    {
+        "question": "What is the result?\n\nconst user = {\n  name: 'Alex',\n  greet: function() {\n    console.log(this.name);\n  }\n}\nuser.greet();",
+        "options": [
+            "Alex",
+            "undefined",
+            "null",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Inside method, 'this' refers to 'user' object."
+    },
+    {
+        "question": "Output?\n\nconsole.log(typeof function(){});",
+        "options": [
+            "'function'",
+            "'object'",
+            "'undefined'",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Functions in JS are of type 'function'."
+    },
+    {
+        "question": "What does this log?\n\nconsole.log(typeof arguments);",
+        "options": [
+            "'object'",
+            "'undefined'",
+            "'function'",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Arguments is an object-like structure."
+    },
+    {
+        "question": "What’s the result?\n\n[1,2,3].map(function(x){ return x * x; });",
+        "options": [
+            "[1,4,9]",
+            "[2,4,6]",
+            "[1,2,3]",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "map squares each element."
+    },
+    {
+        "question": "What is output?\n\nlet x;\nconsole.log(x);",
+        "options": [
+            "undefined",
+            "null",
+            "ReferenceError",
+            "0"
+        ],
+        "answer": 0,
+        "explanation": "x is declared but not assigned, so 'undefined'."
+    },
+    {
+        "question": "Output?\n\nconsole.log(2 == '2');",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "Loose equality with coercion gives true."
+    },
+    {
+        "question": "What does reduce return?\n\n[5,10,15].reduce((acc, val) => acc + val, 0);",
+        "options": [
+            "30",
+            "50",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Reduce accumulates sum starting from 0."
+    },
+    {
+        "question": "What’s logged?\n\nconsole.log(typeof Symbol('id'));",
+        "options": [
+            "'symbol'",
+            "'string'",
+            "'object'",
+            "'undefined'"
+        ],
+        "answer": 0,
+        "explanation": "Symbol is a primitive type in JS."
+    },
+    {
+        "question": "What will this output?\n\nvar a = 10;\n(function() {\n  console.log(a);\n  var a = 5;\n})();",
+        "options": [
+            "10",
+            "5",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 2,
+        "explanation": "Local 'a' hoisted but uninitialized at log time."
+    },
+    {
+        "question": "What’s the result?\n\nvar foo = function bar() {\n  return 7;\n};\nconsole.log(typeof bar);",
+        "options": [
+            "'function'",
+            "'undefined'",
+            "'object'",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "Named function expression doesn't expose name outside."
+    },
+    {
+        "question": "Output?\n\nconsole.log(1 + '1' - 1);",
+        "options": [
+            "10",
+            "0",
+            "NaN",
+            "10"
+        ],
+        "answer": 0,
+        "explanation": "1+'1' gives '11'; '11' - 1 = 10."
+    },
+    {
+        "question": "What happens?\n\nconsole.log([] + {});",
+        "options": [
+            "'[object Object]'",
+            "'[object Object]'",
+            "NaN",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "Empty array becomes '', then + {} => '[object Object]'."
+    },
+    {
+        "question": "Output?\n\nconsole.log({} + []);",
+        "options": [
+            "'[object Object]'",
+            "0",
+            "'[object Object][object Array]'",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "Empty object coerced to string."
+    },
+    {
+        "question": "What does this print?\n\nconsole.log(0 || 1);",
+        "options": [
+            "0",
+            "1",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "Logical OR returns first truthy value."
+    },
+    {
+        "question": "What is result?\n\nconsole.log(1 && 2);",
+        "options": [
+            "1",
+            "2",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "Logical AND returns second value if both truthy."
+    },
+    {
+        "question": "What happens?\n\nconsole.log(typeof NaN);",
+        "options": [
+            "'number'",
+            "'NaN'",
+            "'undefined'",
+            "'object'"
+        ],
+        "answer": 0,
+        "explanation": "NaN is number type in JS."
+    },
+    {
+        "question": "What is result?\n\nfunction foo(){\n  console.log('foo');\n}\n(foo())();",
+        "options": [
+            "'foo'",
+            "TypeError",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "foo() returns undefined, attempting to call undefined throws TypeError."
+    },
+    {
+        "question": "Output?\n\nconsole.log([] == false);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "Empty array coerces to false in loose equality check."
+    },
+    {
+        "question": "What happens?\n\nvar a = (1,2,3);\nconsole.log(a);",
+        "options": [
+            "1",
+            "3",
+            "undefined",
+            "NaN"
+        ],
+        "answer": 1,
+        "explanation": "Comma operator evaluates all and returns last value."
+    },
+    {
+        "question": "Output?\n\nvar a = {};\nvar b = a;\na = null;\nconsole.log(b);",
+        "options": [
+            "null",
+            "{}",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "Object reference remains intact in 'b'."
+    },
+    {
+        "question": "What happens?\n\nconsole.log(typeof null);",
+        "options": [
+            "'object'",
+            "'null'",
+            "'undefined'",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "JS bug: typeof null returns 'object'."
+    },
+    {
+        "question": "Output?\n\nconsole.log(Boolean(''));",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "Empty string is falsy."
+    },
+    {
+        "question": "Result?\n\nconsole.log(1 + - '1' + '2');",
+        "options": [
+            "'02'",
+            "'12'",
+            "'0'",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "1+-1=0, then + '2' => '02'."
+    },
+    {
+        "question": "What happens?\n\nconsole.log(!!'Hello');",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "Non-empty strings are truthy. Double negation converts to boolean."
+    },
+    {
+        "question": "Output?\n\nconsole.log(typeof (() => {}));",
+        "options": [
+            "'function'",
+            "'object'",
+            "'undefined'",
+            "'arrow'"
+        ],
+        "answer": 0,
+        "explanation": "Arrow functions are still of type 'function'."
+    },
+    {
+        "question": "What gets printed?\n\nconsole.log([1,2,3].map(x => x + 1));",
+        "options": [
+            "[2,3,4]",
+            "[1,2,3]",
+            "[1,3,5]",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "map increments each element by 1."
+    },
+    {
+        "question": "Output?\n\nfunction foo(){\n  console.log(this);\n}\nfoo();",
+        "options": [
+            "Window object",
+            "undefined",
+            "null",
+            "foo object"
+        ],
+        "answer": 0,
+        "explanation": "Global function call => 'this' = window (non-strict mode)."
+    },
+    {
+        "question": "What happens?\n\nconsole.log(0 == '0');",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "Loose equality converts both sides before comparing."
+    },
+    {
+        "question": "Output?\n\nconsole.log([...'Hello']);",
+        "options": [
+            "['H','e','l','l','o']",
+            "'Hello'",
+            "['Hello']",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Spread operator splits string into array of characters."
+    },
+    {
+        "question": "What does this return?\n\n[1,2,3].filter(x => x%2 !== 0);",
+        "options": [
+            "[1,3]",
+            "[2]",
+            "[1,2,3]",
+            "[]"
+        ],
+        "answer": 0,
+        "explanation": "Filters odd numbers."
+    },
+    {
+        "question": "Output?\n\nsetTimeout(()=>console.log('first'),0);\nconsole.log('second');",
+        "options": [
+            "first second",
+            "second first",
+            "undefined",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "Second logs first due to event loop async handling."
+    },
+    {
+        "question": "What happens?\n\nconsole.log(!!null);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "null is falsy. Double negation => false."
+    },
+    {
+        "question": "Output?\n\nlet obj = {\n  name: 'JS',\n  print: function() {\n    console.log(this.name);\n  }\n}\nobj.print();",
+        "options": [
+            "'JS'",
+            "undefined",
+            "null",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "'this' inside method points to obj."
+    },
+    {
+        "question": "What gets logged?\n\n(function() {\n  console.log('executed');\n})();",
+        "options": [
+            "executed",
+            "undefined",
+            "Error",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "IIFE runs immediately."
+    },
+    {
+        "question": "What will be the output?\n\n(function() {\n  console.log(typeof x);\n  var x = 10;\n})();",
+        "options": [
+            "'number'",
+            "'undefined'",
+            "'object'",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "Due to hoisting, 'x' exists but is undefined until assigned."
+    },
+    {
+        "question": "Output?\n\nconst obj = { name: 'John' };\nfunction sayName() {\n  console.log(this.name);\n}\nsayName.call(obj);",
+        "options": [
+            "'John'",
+            "undefined",
+            "null",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Using .call, 'this' refers to 'obj'."
+    },
+    {
+        "question": "Result?\n\nfunction makeCounter() {\n  let count = 0;\n  return function() {\n    return count++;\n  }\n}\nconst counter = makeCounter();\nconsole.log(counter());\nconsole.log(counter());",
+        "options": [
+            "0 0",
+            "0 1",
+            "1 2",
+            "undefined undefined"
+        ],
+        "answer": 1,
+        "explanation": "Closure retains state between calls."
+    },
+    {
+        "question": "Output?\n\nconsole.log(1);\nsetTimeout(()=>console.log(2),0);\nPromise.resolve().then(()=>console.log(3));\nconsole.log(4);",
+        "options": [
+            "1 2 3 4",
+            "1 4 3 2",
+            "1 3 4 2",
+            "1 4 2 3"
+        ],
+        "answer": 1,
+        "explanation": "Promise microtasks run before timer macrotasks."
+    },
+    {
+        "question": "What will be logged?\n\nconsole.log(this === window);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "In browsers, global 'this' is 'window'."
+    },
+    {
+        "question": "Output?\n\n(function(x) {\n  return (function(y) {\n    console.log(x);\n  })(2);\n})(1);",
+        "options": [
+            "1",
+            "2",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Closure captures x=1."
+    },
+    {
+        "question": "What happens?\n\nlet a = 10;\n{\n  console.log(a);\n  let a = 20;\n}",
+        "options": [
+            "10",
+            "20",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 3,
+        "explanation": "TDZ prevents accessing 'a' before declaration inside block."
+    },
+    {
+        "question": "Output?\n\nlet a = [1, 2, 3];\nlet b = a.map(x => x * 2);\nconsole.log(b);",
+        "options": [
+            "[2,4,6]",
+            "[1,2,3]",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "map returns a new array with transformed elements."
+    },
+    {
+        "question": "What’s the result?\n\nconsole.log([1,2,3].reduce((acc, val) => acc * val, 1));",
+        "options": [
+            "6",
+            "24",
+            "undefined",
+            "1"
+        ],
+        "answer": 0,
+        "explanation": "Reduce multiplies all elements: 1×2×3=6."
+    },
+    {
+        "question": "Output?\n\n(function() {\n  console.log(this);\n}).call(2);",
+        "options": [
+            "2",
+            "Window object",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "Primitive 2 is boxed into Number object for 'this'."
+    },
+    {
+        "question": "What will be logged?\n\nvar x = 5;\nfunction foo() {\n  console.log(x);\n  var x = 10;\n}\nfoo();",
+        "options": [
+            "5",
+            "10",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 2,
+        "explanation": "'x' is hoisted inside foo(), shadowing global x."
+    },
+    {
+        "question": "Result?\n\nfunction foo(){\n  return function() {\n    console.log('bar');\n  }\n}\nfoo()();",
+        "options": [
+            "foo",
+            "bar",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "Returns inner function which logs 'bar'."
+    },
+    {
+        "question": "Output?\n\nlet a = [1,2,3];\nlet b = a.filter(x => x !== 2);\nconsole.log(b);",
+        "options": [
+            "[1,3]",
+            "[1,2,3]",
+            "[2,3]",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "filter removes 2 from array."
+    },
+    {
+        "question": "What gets printed?\n\nconsole.log([] + {});",
+        "options": [
+            "'[object Object]'",
+            "'[object Object][object Object]'",
+            "NaN",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "Empty array becomes '', then + {} => '[object Object]'."
+    },
+    {
+        "question": "Output?\n\nPromise.resolve().then(()=>console.log('Promise done'));\nconsole.log('Script end');",
+        "options": [
+            "'Promise done' then 'Script end'",
+            "'Script end' then 'Promise done'",
+            "Error",
+            "undefined"
+        ],
+        "answer": 1,
+        "explanation": "Promises (microtask) run after sync code."
+    },
+    {
+        "question": "Result?\n\nfunction foo(){\n  console.log(typeof foo);\n}\nfoo();",
+        "options": [
+            "'function'",
+            "'object'",
+            "undefined",
+            "'number'"
+        ],
+        "answer": 0,
+        "explanation": "Functions can reference themselves."
+    },
+    {
+        "question": "What’s the output?\n\nfunction foo() {\n  console.log(this);\n}\nfoo();",
+        "options": [
+            "Window object",
+            "undefined",
+            "null",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "In non-strict mode, 'this' refers to window."
+    },
+    {
+        "question": "Output?\n\n(function() {\n  console.log(1);\n  setTimeout(()=>console.log(2),0);\n  Promise.resolve().then(()=>console.log(3));\n  console.log(4);\n})();",
+        "options": [
+            "1 2 3 4",
+            "1 4 3 2",
+            "1 3 4 2",
+            "1 4 2 3"
+        ],
+        "answer": 1,
+        "explanation": "Promise runs before timer due to microtask queue."
+    },
+    {
+        "question": "Result?\n\nvar foo = 'Hello';\n(function() {\n  console.log(foo);\n  var foo = 'World';\n})();",
+        "options": [
+            "Hello",
+            "World",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 2,
+        "explanation": "Local 'foo' hoisted but undefined inside function."
+    },
+    {
+        "question": "Output?\n\nlet result = [1,2,3].reduce((acc, val) => acc + val);\nconsole.log(result);",
+        "options": [
+            "6",
+            "123",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Reduce sums elements by default with no initial value."
+    },
+    {
+        "question": "What happens?\n\nconsole.log('5' - 2);",
+        "options": [
+            "3",
+            "'3'",
+            "'52'",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "String is coerced to number during subtraction."
+    },
+    {
+        "question": "Output?\n\nconsole.log([] == ![]);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Weird coercion: [] == false => true."
+    },
+    {
+        "question": "Result?\n\nlet x = 1;\nfunction outer() {\n  let x = 2;\n  function inner() {\n    console.log(x);\n  }\n  return inner;\n}\nconst fn = outer();\nfn();",
+        "options": [
+            "1",
+            "2",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 1,
+        "explanation": "Closure captures x=2 from outer scope."
+    },
+    {
+        "question": "Output?\n\nconsole.log(2 + true);",
+        "options": [
+            "3",
+            "2true",
+            "NaN",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "true converts to 1 during number addition."
+    },
+    {
+        "question": "Output?\n\nconsole.log(typeof (function(){}));",
+        "options": [
+            "'function'",
+            "'object'",
+            "'undefined'",
+            "'Error'"
+        ],
+        "answer": 0,
+        "explanation": "Functions are type 'function'."
+    },
+    {
+        "question": "What’s logged?\n\nfunction a(){ console.log('A'); }\n(function() { a(); })();",
+        "options": [
+            "A",
+            "undefined",
+            "null",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Immediately Invoked Function calls 'a()'."
+    },
+    {
+        "question": "Output?\n\nconsole.log(!!0);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "0 is falsy, so double negation gives false."
+    },
+    {
+        "question": "What happens?\n\n(function(){\n  console.log(this);\n}).bind(1)();",
+        "options": [
+            "1",
+            "Window object",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "bind sets 'this' to 1."
+    },
+    {
+        "question": "Output?\n\n[1,2,3].forEach(x => console.log(x * 2));",
+        "options": [
+            "2 4 6",
+            "[2,4,6]",
+            "1 2 3",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "forEach applies function on each element."
+    },
+    {
+        "question": "Result?\n\nconsole.log([1,2,3].find(x => x > 1));",
+        "options": [
+            "2",
+            "3",
+            "undefined",
+            "1"
+        ],
+        "answer": 0,
+        "explanation": "find returns first element >1, which is 2."
+    },
+    {
+        "question": "Output?\n\nfunction foo(a){\n  console.log(arguments);\n}\nfoo(1,2,3);",
+        "options": [
+            "[1,2,3]",
+            "Arguments object with 3 items",
+            "undefined",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "Arguments object contains passed parameters."
+    },
+    {
+        "question": "Output?\n\nfunction foo(){\n  console.log(this);\n}\nfoo.call(null);",
+        "options": [
+            "Window object",
+            "null",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Non-strict mode defaults to global object."
+    },
+    {
+        "question": "Result?\n\nconsole.log(typeof new Function());",
+        "options": [
+            "'function'",
+            "'object'",
+            "'undefined'",
+            "'Error'"
+        ],
+        "answer": 0,
+        "explanation": "'new Function()' creates a new function."
+    },
+    {
+        "question": "Output?\n\n[1,2,3].reduceRight((acc,val)=>acc-val);",
+        "options": [
+            "-4",
+            "4",
+            "undefined",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "reduceRight processes right to left."
+    },
+    {
+        "question": "Output?\n\nconsole.log(0 && 'hello');",
+        "options": [
+            "0",
+            "'hello'",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "Logical AND stops at first falsy value."
+    },
+    {
+        "question": "Result?\n\nconsole.log('' + 1 + 0);",
+        "options": [
+            "'10'",
+            "1",
+            "10",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "String concatenation results in '10'."
+    },
+    {
+        "question": "Output?\n\nsetTimeout(()=>console.log('Timer done'),0);\nPromise.resolve().then(()=>console.log('Promise done'));\nconsole.log('End');",
+        "options": [
+            "End, Timer done, Promise done",
+            "End, Promise done, Timer done",
+            "Promise done, End, Timer done",
+            "Timer done, Promise done, End"
+        ],
+        "answer": 1,
+        "explanation": "Microtasks (Promise) run before macrotasks (setTimeout)."
+    },
+    {
+        "question": "What happens?\n\nconsole.log(1 && 0);",
+        "options": [
+            "1",
+            "0",
+            "true",
+            "false"
+        ],
+        "answer": 1,
+        "explanation": "AND stops at first falsy: 0."
+    },
+    {
+        "question": "What will be the output?\n\nconsole.log(typeof undeclaredVar);",
+        "options": [
+            "'undefined'",
+            "'object'",
+            "'string'",
+            "ReferenceError"
+        ],
+        "answer": 3,
+        "explanation": "Accessing an undeclared variable throws ReferenceError."
+    },
+    {
+        "question": "Output?\n\nlet x = 10;\n(function() {\n  console.log(x);\n  let x = 20;\n})();",
+        "options": [
+            "10",
+            "20",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 3,
+        "explanation": "TDZ error. Can't access 'x' before declaration."
+    },
+    {
+        "question": "What gets logged?\n\nconst obj = {\n  value: 42,\n  getValue: function() {\n    return this.value;\n  }\n};\nconst getVal = obj.getValue;\nconsole.log(getVal());",
+        "options": [
+            "42",
+            "undefined",
+            "null",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "getVal loses 'this' context. Global 'this.value' is undefined."
+    },
+    {
+        "question": "Result?\n\nconsole.log(1 + '2' + 3);",
+        "options": [
+            "'123'",
+            "'33'",
+            "6",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "String concatenation dominates once string appears."
+    },
+    {
+        "question": "What does this print?\n\nfunction outer() {\n  let x = 5;\n  return function inner() {\n    console.log(x);\n  }\n}\nconst fn = outer();\nfn();",
+        "options": [
+            "undefined",
+            "5",
+            "null",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "Closure retains outer scope variable."
+    },
+    {
+        "question": "Output?\n\nsetTimeout(()=>console.log('first'),0);\nPromise.resolve().then(()=>console.log('second'));\nconsole.log('third');",
+        "options": [
+            "first second third",
+            "third second first",
+            "second third first",
+            "third first second"
+        ],
+        "answer": 1,
+        "explanation": "Sync first, microtask second, then macrotask third."
+    },
+    {
+        "question": "What’s the result?\n\n[1, 2, 3].reduce((acc, val) => acc - val);",
+        "options": [
+            "-4",
+            "undefined",
+            "NaN",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Reduce left-to-right: ((1-2)-3) = -4."
+    },
+    {
+        "question": "Output?\n\nconsole.log(0 == []);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "Loose equality does coercion, [] becomes 0."
+    },
+    {
+        "question": "Result?\n\n(function(a){\n  return (function(){\n    console.log(a);\n  })();\n})(5);",
+        "options": [
+            "5",
+            "undefined",
+            "null",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Closure keeps 'a' from outer function."
+    },
+    {
+        "question": "What gets logged?\n\nconst obj = {\n  val: 10,\n  method: function() {\n    setTimeout(function() {\n      console.log(this.val);\n    }, 0);\n  }\n};\nobj.method();",
+        "options": [
+            "10",
+            "undefined",
+            "null",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "setTimeout callback has global 'this', not obj."
+    },
+    {
+        "question": "Output?\n\nconsole.log([1, 2, 3].map(x => x.toString()));",
+        "options": [
+            "['1','2','3']",
+            "[1,2,3]",
+            "['1',2,3]",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "map converts each number to string."
+    },
+    {
+        "question": "What happens?\n\n(function() {\n  console.log(this);\n}).apply(null);",
+        "options": [
+            "Window object",
+            "null",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "In non-strict mode, null becomes window."
+    },
+    {
+        "question": "Result?\n\nlet x = 3;\nfunction foo() {\n  console.log(x);\n  var x = 2;\n}\nfoo();",
+        "options": [
+            "3",
+            "2",
+            "undefined",
+            "ReferenceError"
+        ],
+        "answer": 2,
+        "explanation": "'x' is hoisted inside foo, so undefined at log."
+    },
+    {
+        "question": "Output?\n\nconsole.log([1, 2, 3].filter(x => x > 1));",
+        "options": [
+            "[2,3]",
+            "[1,2,3]",
+            "[1,3]",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "filter keeps elements > 1."
+    },
+    {
+        "question": "What will this print?\n\nconsole.log((function(x){ return x * x; })(2));",
+        "options": [
+            "4",
+            "2",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "IIFE calculates 2×2."
+    },
+    {
+        "question": "Output?\n\nfunction foo(){\n  console.log(this);\n}\nfoo.call(5);",
+        "options": [
+            "5",
+            "Window object",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "Call sets 'this' to 5 (boxed into Number object)."
+    },
+    {
+        "question": "What’s the result?\n\n[1, 2, 3].reduce((acc, val) => acc + val, 0);",
+        "options": [
+            "6",
+            "123",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Reduce sums elements starting from 0."
+    },
+    {
+        "question": "Output?\n\nconsole.log(!!undefined);",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "undefined is falsy. !!undefined => false."
+    },
+    {
+        "question": "What gets logged?\n\nconsole.log(typeof (() => {}));",
+        "options": [
+            "'function'",
+            "'object'",
+            "'undefined'",
+            "'arrow'"
+        ],
+        "answer": 0,
+        "explanation": "Arrow functions are type 'function'."
+    },
+    {
+        "question": "Result?\n\nconsole.log(Boolean(NaN));",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "NaN is falsy."
+    },
+    {
+        "question": "Output?\n\nfunction test(){\n  console.log(arguments.length);\n}\ntest(1,2,3);",
+        "options": [
+            "3",
+            "2",
+            "1",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "'arguments' object has length 3."
+    },
+    {
+        "question": "What happens?\n\nconsole.log(2 && 3);",
+        "options": [
+            "2",
+            "3",
+            "true",
+            "false"
+        ],
+        "answer": 1,
+        "explanation": "AND returns second operand if first is truthy."
+    },
+    {
+        "question": "Output?\n\nconsole.log('5' - 3);",
+        "options": [
+            "2",
+            "'53'",
+            "NaN",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "'5' coerced to number for subtraction."
+    },
+    {
+        "question": "What gets logged?\n\nlet foo = function() {\n  console.log('foo');\n}\nfoo();",
+        "options": [
+            "foo",
+            "undefined",
+            "null",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Normal function expression."
+    },
+    {
+        "question": "Output?\n\nconsole.log([].map.call('123', x => x));",
+        "options": [
+            "['1','2','3']",
+            "['123']",
+            "undefined",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Using map on string splits chars."
+    },
+    {
+        "question": "What is result?\n\nconsole.log(0 || 'yes');",
+        "options": [
+            "0",
+            "'yes'",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "OR returns first truthy: 'yes'."
+    },
+    {
+        "question": "Output?\n\nconsole.log([1,2,3].reduce((a,b)=>a+b,''));",
+        "options": [
+            "'123'",
+            "6",
+            "undefined",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "Reduce with '' as initial: string concat."
+    },
+    {
+        "question": "What will this output?\n\nconsole.log(2 == '2');",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "NaN"
+        ],
+        "answer": 0,
+        "explanation": "Loose equality allows type coercion."
+    },
+    {
+        "question": "Result?\n\n(function(x){\n  console.log(x);\n})(x);",
+        "options": [
+            "undefined",
+            "ReferenceError",
+            "null",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "x is not declared at that point => ReferenceError."
+    },
+    {
+        "question": "What happens?\n\nfunction foo() {\n  bar();\n  function bar() {\n    console.log('bar called');\n  }\n}\nfoo();",
+        "options": [
+            "bar called",
+            "undefined",
+            "null",
+            "ReferenceError"
+        ],
+        "answer": 0,
+        "explanation": "Function declarations are hoisted."
+    },
+    {
+        "question": "Output?\n\nsetTimeout(function() {\n  console.log('timeout');\n}, 0);\nconsole.log('sync');",
+        "options": [
+            "timeout sync",
+            "sync timeout",
+            "undefined",
+            "Error"
+        ],
+        "answer": 1,
+        "explanation": "Timers run after sync code."
+    },
+    {
+        "question": "What gets printed?\n\nconsole.log(typeof (new Date()));",
+        "options": [
+            "'object'",
+            "'date'",
+            "'function'",
+            "undefined"
+        ],
+        "answer": 0,
+        "explanation": "Date instances are objects."
+    },
+    {
+        "question": "Result?\n\nconsole.log([1, 2, 3].find(x => x > 2));",
+        "options": [
+            "3",
+            "undefined",
+            "1",
+            "2"
+        ],
+        "answer": 0,
+        "explanation": "find returns first element satisfying condition."
+    },
+    {
+        "question": "Output?\n\nconsole.log([1, 2, 3].some(x => x > 2));",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "some checks if any element >2."
+    },
+    {
+        "question": "What happens?\n\n(function(){\n  console.log(this);\n}).bind(3)();",
+        "options": [
+            "3",
+            "Window object",
+            "undefined",
+            "null"
+        ],
+        "answer": 0,
+        "explanation": "bind forces 'this' to 3 (boxed)."
+    },
+    {
+        "question": "Result?\n\nconsole.log(typeof (function(){}));",
+        "options": [
+            "'function'",
+            "'object'",
+            "'undefined'",
+            "Error"
+        ],
+        "answer": 0,
+        "explanation": "Functions are of type 'function'."
+    },
+    {
+        "question": "Output?\n\nconsole.log(!!'');",
+        "options": [
+            "true",
+            "false",
+            "undefined",
+            "null"
+        ],
+        "answer": 1,
+        "explanation": "Empty string is falsy."
+    },
+    {
+        "question": "What gets printed?\n\nconsole.log(typeof Symbol('x'));",
+        "options": [
+            "'symbol'",
+            "'string'",
+            "'object'",
+            "'undefined'"
+        ],
+        "answer": 0,
+        "explanation": "Symbols are their own type."
+    }
+]
+
+  let current = 0;
+    let score = 0;
+    let answers = JSON.parse(localStorage.getItem('js_mcq_answers_js_fundamental')) || [];
+    let timeLeft = 9000; // 10 minutes
+
+    function renderQuestion() {
+      if (current >= questions.length) return showResults();
+      const q = questions[current];
+      document.getElementById('question').innerText = `Q${current + 1}: ${q.question}`;
+      const savedAnswer = answers[current]?.selected;
+      const optionsHTML = q.options.map((opt, i) => 
+        `<div class="option">
+          <label>
+            <input type="radio" name="opt" value="${i}" ${savedAnswer === opt ? 'checked disabled' : ''} onchange="enableCheck()"> ${opt}
+          </label>
+        </div>`
+      ).join('');
+      document.getElementById('options').innerHTML = optionsHTML;
+      document.getElementById('explanation').innerHTML = '';
+      document.getElementById('checkBtn').style.display = savedAnswer ? 'none' : 'inline-block';
+      document.getElementById('nextBtn').disabled = !savedAnswer;
+      if (savedAnswer) showExplanation(savedAnswer);
+    }
+
+    function enableCheck() {
+      document.getElementById('checkBtn').disabled = false;
+    }
+
+    function checkAnswer() {
+      const selected = document.querySelector('input[name="opt"]:checked');
+      if (!selected) return alert("Please select an option");
+
+      const selectedValue = parseInt(selected.value);
+      const q = questions[current];
+      const isCorrect = selectedValue === q.answer;
+      if (isCorrect) score++;
+
+      const answerRecord = {
+        question: q.question,
+        selected: q.options[selectedValue],
+        correct: q.options[q.answer],
+        explanation: q.explanation,
+        isCorrect
+      };
+      answers[current] = answerRecord;
+      localStorage.setItem('js_mcq_answers_js_fundamental', JSON.stringify(answers));
+      showExplanation(q.options[selectedValue]);
+      document.getElementById('checkBtn').style.display = 'none';
+      document.getElementById('nextBtn').disabled = false;
+      renderQuestion();
+    }
+
+    function showExplanation(userAnswer) {
+      const q = questions[current];
+      const isCorrect = userAnswer === q.options[q.answer];
+      document.getElementById('explanation').innerHTML = `<strong>${isCorrect ? 'Correct!' : 'Wrong!'}</strong><br>
+        Your answer: ${userAnswer}<br>
+        Correct answer: ${q.options[q.answer]}<br>
+        Explanation: ${q.explanation}`;
+    }
+
+    function nextQuestion() {
+      if (current < questions.length - 1) {
+        current++;
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function prevQuestion() {
+      if (current > 0) {
+        current--;
+        renderQuestion();
+      }
+    }
+
+    function showResults() {
+      score = answers.reduce((acc, curr, i) => {
+        const correct = questions[i].options[questions[i].answer];
+        return curr && curr.selected === correct ? acc + 1 : acc;
+      }, 0);
+
+      document.getElementById('quiz-container').style.display = 'none';
+      const resultContainer = document.getElementById('result-container');
+      resultContainer.style.display = 'block';
+      document.getElementById('score').innerText = `You scored ${score} out of ${questions.length}`;
+
+      const list = document.getElementById('answers-list');
+      list.innerHTML = '';
+      answers.forEach((ans, i) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>Q${i+1}:</strong> ${ans.question}<br>
+          <span class="${ans.isCorrect ? 'correct' : 'incorrect'}">
+            Your answer: ${ans.selected} (${ans.isCorrect ? 'Correct' : 'Wrong'})
+          </span><br>
+          Correct answer: ${ans.correct}<br>
+          Explanation: ${ans.explanation}`;
+        list.appendChild(li);
+      });
+    }
+
+    function updateTimer() {
+      const mins = Math.floor(timeLeft / 60);
+      const secs = timeLeft % 60;
+      document.getElementById('timer').innerText = `Time left: ${mins}:${secs < 10 ? '0' + secs : secs}`;
+      timeLeft--;
+      if (timeLeft < 0) showResults();
+    }
+
+    window.onload = function() {
+      renderQuestion();
+      setInterval(updateTimer, 1000);
+    };
+  </script>
+</body>
+</html>
